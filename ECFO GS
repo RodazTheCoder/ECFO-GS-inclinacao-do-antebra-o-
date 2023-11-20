@@ -1,0 +1,48 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor_Calibration.h>
+
+#define SERIAL_SPEED 115200
+
+#define SDA_PIN 21
+#define SCL_PIN 22
+
+Adafruit_MPU6050 mpu;
+
+TwoWire myWire(0); 
+
+void setup() {
+  Serial.begin(SERIAL_SPEED); 
+  
+  if (!mpu.begin(MPU6050_I2CADDR_DEFAULT, &myWire)) {
+    Serial.println("Falha ao iniciar o MPU6050. Verifique as conexões.");
+    while (1);
+  }
+
+  mpu.setAccelerometerRange(MPU6050_RANGE_16_G);
+}
+
+void loop() {
+  sensors_event_t accelEvent, gyroEvent, tempEvent;
+  mpu.getEvent(&accelEvent, &gyroEvent, &tempEvent);
+
+  float accelX = accelEvent.acceleration.x;
+  float accelY = accelEvent.acceleration.y;
+  float accelZ = accelEvent.acceleration.z;
+
+  float forearmInclination = abs(atan2(accelY, sqrt(accelX * accelX + accelZ * accelZ)) * (180.0 / PI));
+
+  Serial.print("Inclinação do Antebraço: ");
+  Serial.print(forearmInclination);
+  Serial.println(" graus");
+
+  Serial.print("Acelerômetro - X: ");
+  Serial.print(accelX);
+  Serial.print(" m/s², Y: ");
+  Serial.print(accelY);
+  Serial.print(" m/s², Z: ");
+  Serial.println(accelZ);
+
+  delay(1000);
+}
